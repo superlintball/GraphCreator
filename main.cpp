@@ -31,6 +31,8 @@ void print(char* vertices[20], int adjacency[20][20])
 				{
 					if(adjacency[i][j] != -1)
 						cout << adjacency[i][j];
+					else if(i == j)
+						cout << "0";
 					else
 						cout << "-";
 					
@@ -68,9 +70,9 @@ void addEdge(char* vertices[20], int adjacency[20][20])
 	int weight = -1;
 	
 	//prompt the user for the vertices
-	cout << "Enter the name of the first vertex you want to connect.\n";
+	cout << "Enter the name of the vertex you want to start at.\n";
 	cin >> first;
-	cout << "Enter the name of the second vertex you want to connect.\n";
+	cout << "Enter the name of the vertex you want to end at.\n";
 	cin >> second;
 	
 	//find the index of each vertex
@@ -99,7 +101,6 @@ void addEdge(char* vertices[20], int adjacency[20][20])
 	
 	//add the edge to the matrix
 	adjacency[firstInd][secondInd] = weight;
-	adjacency[secondInd][firstInd] = weight;
 }
 
 //remove a vertex and delete everything it's connected to
@@ -147,9 +148,9 @@ void removeEdge(char* vertices[20], int adjacency[20][20])
 	int secondInd = -1;
 	
 	//prompt the user for the ends of the edge being deleted
-	cout << "Enter the name of one end of the edge you want to delete.\n";
+	cout << "Enter the name of the beginning of the edge you want to delete.\n";
 	cin >> first;
-	cout << "Enter the name of the other end of the edge you want to delete.\n";
+	cout << "Enter the name of the end of the edge you want to delete.\n";
 	cin >> second;
 	
 	//find the index of each vertex
@@ -174,16 +175,20 @@ void removeEdge(char* vertices[20], int adjacency[20][20])
 	
 	//remove the edge from the matrix
 	adjacency[firstInd][secondInd] = -1;
-	adjacency[secondInd][firstInd] = -1;
 }
 
+//prints the list of nodes in a path
 void outputList(char* vertices[20], int prev[], int start, bool last = true)
 {
+	//if the node has a previous in the path, recursively run it on the previous vertex
 	if(prev[start] != -1)
 		outputList(vertices, prev, prev[start], false);
 	
+	//print the vertex if it exists
 	if(vertices[start])
 		cout << vertices[start];
+	
+	//print out an arrow if it isn't the last thing in the list
 	if(!last)
 		cout << "->";
 }
@@ -230,30 +235,41 @@ void salesman(char* vertices[20], int adjacency[20][20])
 		return;
 	}
 	
+	//arrays to keep track of information for salesman
 	bool visited[maxIndex+1] = {false};
 	int dist[maxIndex+1] = {INT_MAX};
 	int prev[maxIndex+1] = {-1};
 	bool remaining = false;
 	
+	//go through all of the vertices
 	for(int i = 0; i <= maxIndex; i++)
 	{
+		//if the vertex exists
 		if(vertices[i])
 		{
+			//set distance from the source to this vertex to max
 			dist[i] = INT_MAX;
+			//set the previous vertex to an index of -1
 			prev[i] = -1;
+			//set the vertex to unvisited
 			visited[i] = false;
+			//confirm that there is at least one unvisited vertex remaining
 			remaining = true;
 		}
+		//if the vertex doesn't exist, call it visited
 		else
 		{
 			visited[i] = true;
 		}
 	}
 	
+	//the distance from the start to the start is 0
 	dist[startInd] = 0;
 	
+	//while there is at least one unvisited vertex
 	while(remaining)
 	{
+		//find the unvisited vertex with the shortest stored distance
 		int minDist = INT_MAX;
 		int minIndex = -1;
 		for(int i = 0; i <= maxIndex; i++)
@@ -264,8 +280,14 @@ void salesman(char* vertices[20], int adjacency[20][20])
 				minIndex = i;
 			}
 		}
+		
+		if(minIndex == -1)
+			break;
+		
+		//call it visited
 		visited[minIndex] = true;
 		
+		//if its connections result in a smaller distance than already stored, replace them
 		for(int i = 0; i <= maxIndex; i++)
 		{
 			if(adjacency[minIndex][i] != -1)
@@ -279,6 +301,7 @@ void salesman(char* vertices[20], int adjacency[20][20])
 			}
 		}
 		
+		//go through the vertices and as long as at least one is unvisited, call it good
 		remaining = false;
 		for(int i = 0; i <= maxIndex; i++)
 		{
@@ -289,11 +312,14 @@ void salesman(char* vertices[20], int adjacency[20][20])
 		}
 	}
 	
+	//leave no connection was found
 	if(dist[endInd] == INT_MAX)
 	{
 		cout << "There is no connection between the nodes.\n";
 		return;
 	}
+	
+	//print out the path if it was found
 	cout << "Minimum distance: " << dist[endInd] << "\nPath: ";
 	outputList(vertices, prev, endInd);
 	cout << endl;	
