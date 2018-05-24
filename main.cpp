@@ -1,3 +1,9 @@
+/* Author: Raveen Karnik
+ * Date: 5-24-18
+ * This program creates a graph with connections between the vertices
+ * then allows a user to use Dijkstra's algorithm to find the shortest
+ * path between two vertices */
+
 #include <iostream>
 #include <cstring>
 #include <climits>
