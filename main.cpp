@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <climits>
 
 using namespace std;
 
@@ -176,6 +177,17 @@ void removeEdge(char* vertices[20], int adjacency[20][20])
 	adjacency[secondInd][firstInd] = -1;
 }
 
+void outputList(char* vertices[20], int prev[], int start, bool last = true)
+{
+	if(prev[start] != -1)
+		outputList(vertices, prev, prev[start], false);
+	
+	if(vertices[start])
+		cout << vertices[start];
+	if(!last)
+		cout << "->";
+}
+
 //find the shortest path between two nodes
 void salesman(char* vertices[20], int adjacency[20][20])
 {
@@ -190,8 +202,16 @@ void salesman(char* vertices[20], int adjacency[20][20])
 	cout << "Enter the name of the vertex you want to end at.\n";
 	cin >> end;
 	
-	//find the index of each vertex
+	//I need the maximum existing index for other things so might as well use it in lots of places
+	int maxIndex = 0;
 	for(int i = 0; i < 20; i++)
+	{
+		if(vertices[i])
+			maxIndex = i;
+	}
+	
+	//find the index of each vertex
+	for(int i = 0; i <= maxIndex; i++)
 	{
 		if(vertices[i])
 		{
@@ -209,6 +229,74 @@ void salesman(char* vertices[20], int adjacency[20][20])
 		cout << "Either the start or the end doesn't exist.\n";
 		return;
 	}
+	
+	bool visited[maxIndex+1] = {false};
+	int dist[maxIndex+1] = {INT_MAX};
+	int prev[maxIndex+1] = {-1};
+	bool remaining = false;
+	
+	for(int i = 0; i <= maxIndex; i++)
+	{
+		if(vertices[i])
+		{
+			dist[i] = INT_MAX;
+			prev[i] = -1;
+			visited[i] = false;
+			remaining = true;
+		}
+		else
+		{
+			visited[i] = true;
+		}
+	}
+	
+	dist[startInd] = 0;
+	
+	while(remaining)
+	{
+		int minDist = INT_MAX;
+		int minIndex = -1;
+		for(int i = 0; i <= maxIndex; i++)
+		{
+			if(!visited[i] && minDist > dist[i])
+			{
+				minDist = dist[i];
+				minIndex = i;
+			}
+		}
+		visited[minIndex] = true;
+		
+		for(int i = 0; i <= maxIndex; i++)
+		{
+			if(adjacency[minIndex][i] != -1)
+			{
+				int maybe = dist[minIndex] + adjacency[minIndex][i];
+				if(maybe < dist[i])
+				{
+					dist[i] = maybe;
+					prev[i] = minIndex;
+				}
+			}
+		}
+		
+		remaining = false;
+		for(int i = 0; i <= maxIndex; i++)
+		{
+			if(!visited[i])
+			{
+				remaining = true;
+			}
+		}
+	}
+	
+	if(dist[endInd] == INT_MAX)
+	{
+		cout << "There is no connection between the nodes.\n";
+		return;
+	}
+	cout << "Minimum distance: " << dist[endInd] << "\nPath: ";
+	outputList(vertices, prev, endInd);
+	cout << endl;	
 }
 
 int main()
@@ -249,7 +337,7 @@ int main()
 		else if(input == 5)
 			print(vertices, adjacency);
 		else if(input == 6)
-		{}
+			salesman(vertices, adjacency);
 		else if(input == 7)
 			running = false;
 		else
